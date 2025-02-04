@@ -402,6 +402,110 @@ if __name__ == "__main__":
 ### ทำการปรับปรุงโปรแกรม โดยให้ทำการกดเลือกธุรกรรม แล้วจะมีเลขคิวในแต่ละช่วงของการทำธุรกรรม แทนชื่อของลูกค้า และมีการเรียกคิวตามระดับความสำคัญและเวลาที่มาก่อนหลังของลูกค้า
 
 ```python
-code python
+import heapq
+from datetime import datetime
+import time
+
+class BankCustomer:
+    queue_counter = 1  # ตัวนับหมายเลขคิว
+    
+    def __init__(self, service_type, is_premium=False):
+        self.queue_number = BankCustomer.queue_counter
+        BankCustomer.queue_counter += 1
+        self.service_type = service_type
+        self.is_premium = is_premium
+        self.arrival_time = datetime.now()
+        self.priority = self._calculate_priority()
+    
+    def _calculate_priority(self):
+        priority = {
+            'ฝาก-ถอน': 3,
+            'ชำระค่าบริการ': 2,
+            'เปิดบัญชี': 1,
+            'สินเชื่อ': 0
+        }
+        base_priority = priority.get(self.service_type, 4)
+        if self.is_premium:
+            base_priority -= 0.5
+        return base_priority
+    
+    def __lt__(self, other):
+        if self.priority == other.priority:
+            return self.arrival_time < other.arrival_time
+        return self.priority < other.priority
+
+class BankQueue:
+    def __init__(self):
+        self.queue = []
+        self.waiting_count = 0
+    
+    def add_customer(self, customer):
+        heapq.heappush(self.queue, customer)
+        self.waiting_count += 1
+        print(f"หมายเลขคิว: {customer.queue_number}")
+        print(f"บริการ: {customer.service_type}")
+        print(f"สถานะ: {'Premium' if customer.is_premium else 'ทั่วไป'}")
+        print(f"จำนวนคิวรอ: {self.waiting_count}")
+        print("-" * 30)
+    
+    def serve_next_customer(self):
+        if not self.queue:
+            print("ไม่มีลูกค้าในคิว")
+            return None
+        
+        customer = heapq.heappop(self.queue)
+        self.waiting_count -= 1
+        wait_time = datetime.now() - customer.arrival_time
+        print(f"\nเรียกหมายเลขคิว: {customer.queue_number}")
+        print(f"บริการ: {customer.service_type}")
+        print(f"เวลารอ: {wait_time.seconds} วินาที")
+        print(f"จำนวนคิวรอ: {self.waiting_count}")
+        print("-" * 30)
+        return customer
+    
+    def display_queue(self):
+        if not self.queue:
+            print("ไม่มีลูกค้าในคิว")
+            return
+        print("\nรายการคิวที่รอ:")
+        temp_queue = self.queue.copy()
+        position = 1
+        while temp_queue:
+            customer = heapq.heappop(temp_queue)
+            print(f"{position}. หมายเลขคิว {customer.queue_number} - {customer.service_type}")
+            position += 1
+        print("-" * 30)
+
+# ระบบการเพิ่มคิวแบบโต้ตอบ
+def interactive_bank_queue():
+    bank = BankQueue()
+    services = ['ฝาก-ถอน', 'ชำระค่าบริการ', 'เปิดบัญชี', 'สินเชื่อ']
+    while True:
+        print("\nเลือกธุรกรรม:")
+        for i, service in enumerate(services, start=1):
+            print(f"{i}. {service}")
+        print("5. ออกจากระบบ")
+        choice = input("เลือกหมายเลขบริการ: ")
+        
+        if choice == '5':
+            break
+        
+        if choice in map(str, range(1, 5)):
+            service_type = services[int(choice) - 1]
+            is_premium = input("เป็นลูกค้า Premium หรือไม่? (y/n): ").lower() == 'y'
+            customer = BankCustomer(service_type, is_premium)
+            bank.add_customer(customer)
+        else:
+            print("ตัวเลือกไม่ถูกต้อง กรุณาเลือกใหม่")
+        
+        print("\nแสดงลำดับคิว:")
+        bank.display_queue()
+        
+        input("กด Enter เพื่อเรียกลูกค้ารายถัดไป...")
+        bank.serve_next_customer()
+
+if __name__ == "__main__":
+    interactive_bank_queue()
 ```
-[Capture รูปส่งตรงนี้]
+![image](https://github.com/user-attachments/assets/594daca2-fec2-4e96-bb59-df25569fedb6)
+
