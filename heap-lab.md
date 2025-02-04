@@ -79,25 +79,148 @@ def _sift_down(self, i):
 จงเขียนโปรแกรมเพื่อแทรกค่าต่อไปนี้ลงใน Max Heap ที่ว่างเปล่า: 5, 3, 8, 1, 2, 7, 6, 4
 พร้อมแสดงค่า Max Heap ที่ได้หลังจากเพิ่มข้อมูลครบแล้ว
 ```python
-code python
+class MaxHeap:
+    def __init__(self):
+        self.heap = []
+
+    def insert(self, val):
+        """แทรกค่าเข้าไปใน heap และปรับให้อยู่ในรูปแบบ Max Heap"""
+        self.heap.append(val)
+        self._sift_up(len(self.heap) - 1)
+
+    def _sift_up(self, i):
+        """ดึงค่าที่เพิ่มเข้าไปขึ้นไปหาตำแหน่งที่เหมาะสม"""
+        while i > 0:
+            parent = (i - 1) // 2
+            if self.heap[i] > self.heap[parent]:
+                self._swap(i, parent)
+                i = parent
+            else:
+                break
+
+    def _swap(self, i, j):
+        """สลับค่าระหว่างตำแหน่ง i และ j"""
+        self.heap[i], self.heap[j] = self.heap[j], self.heap[i]
+
+    def __str__(self):
+        return str(self.heap)
+
+# สร้าง MaxHeap และแทรกข้อมูล
+max_heap = MaxHeap()
+values = [5, 3, 8, 1, 2, 7, 6, 4]
+
+for val in values:
+    max_heap.insert(val)
+
+print("Max Heap:", max_heap)
 ```
-[Capture รูปส่งตรงนี้]
+![image](https://github.com/user-attachments/assets/30d6c39f-55ca-4620-ac94-9db143f9c5b5)
+
 
 ### แบบฝึกหัดที่ 2: การลบค่า
 จากข้อ 1 จงเขียนลำดับการลบค่าสูงสุดออกจาก Heap จำนวน 3 ครั้ง แสดงข้อมูล Heap หลังจากลบแต่ละครั้ง
 
 ```python
-code python
+class MaxHeap:
+    def __init__(self):
+        self.heap = []
+
+    def insert(self, val):
+        """แทรกค่าเข้าไปใน heap และปรับให้อยู่ในรูปแบบ Max Heap"""
+        self.heap.append(val)
+        self._sift_up(len(self.heap) - 1)
+
+    def extract_max(self):
+        """ลบค่ามากที่สุดออกจาก heap และปรับโครงสร้าง heap"""
+        if len(self.heap) == 0:
+            return None
+
+        max_val = self.heap[0]
+        self.heap[0] = self.heap[-1]  # นำค่าตัวสุดท้ายมาแทนที่ Root
+        self.heap.pop()  # ลบค่าตัวสุดท้ายออก
+        self._sift_down(0)  # ปรับโครงสร้าง heap
+
+        return max_val
+
+    def _sift_up(self, i):
+        """ดึงค่าที่เพิ่มเข้าไปขึ้นไปหาตำแหน่งที่เหมาะสม"""
+        while i > 0:
+            parent = (i - 1) // 2
+            if self.heap[i] > self.heap[parent]:
+                self._swap(i, parent)
+                i = parent
+            else:
+                break
+
+    def _sift_down(self, i):
+        """ปรับโครงสร้าง heap หลังจากลบค่ามากที่สุด"""
+        max_index = i
+        left = 2 * i + 1
+        right = 2 * i + 2
+
+        if left < len(self.heap) and self.heap[left] > self.heap[max_index]:
+            max_index = left
+        if right < len(self.heap) and self.heap[right] > self.heap[max_index]:
+            max_index = right
+
+        if i != max_index:
+            self._swap(i, max_index)
+            self._sift_down(max_index)
+
+    def _swap(self, i, j):
+        """สลับค่าระหว่างตำแหน่ง i และ j"""
+        self.heap[i], self.heap[j] = self.heap[j], self.heap[i]
+
+    def __str__(self):
+        return str(self.heap)
+
+
+# สร้าง MaxHeap และแทรกข้อมูล
+max_heap = MaxHeap()
+values = [5, 3, 8, 1, 2, 7, 6, 4]
+
+for val in values:
+    max_heap.insert(val)
+
+print("เริ่มต้น Max Heap:", max_heap)
+
+# ลบค่ามากที่สุด 3 ครั้ง และแสดงผลลัพธ์แต่ละครั้ง
+for i in range(3):
+    removed = max_heap.extract_max()
+    print(f"ลบค่า {removed} ออกจาก Heap → {max_heap}")
+
 ```
-[Capture รูปส่งตรงนี้]
+![image](https://github.com/user-attachments/assets/fc7053b6-2880-4d23-9129-73bbb445d42f)
+
 
 ### แบบฝึกหัดที่ 3: การเขียนโปรแกรม
 จงเขียนฟังก์ชัน `is_max_heap(arr)` ที่รับ array เข้ามาและตรวจสอบว่าป็น Max Heap หรือไม่ 
 
 ```python
-code python
+def is_max_heap(arr):
+    n = len(arr)
+    
+    for i in range(n // 2):  # ตรวจสอบเฉพาะโหนดที่เป็นพ่อ (ไม่ต้องตรวจลูก)
+        left = 2 * i + 1
+        right = 2 * i + 2
+
+        if left < n and arr[i] < arr[left]:  # ถ้าพ่อ < ลูกซ้าย ไม่ใช่ Max Heap
+            return False
+        if right < n and arr[i] < arr[right]:  # ถ้าพ่อ < ลูกขวา ไม่ใช่ Max Heap
+            return False
+
+    return True  # ถ้าตรวจหมดแล้วไม่มีปัญหา แสดงว่าเป็น Max Heap
+# ตัวอย่างที่เป็น Max Heap
+arr1 = [9, 7, 6, 5, 3, 2, 4]
+print(arr1,' is ',is_max_heap(arr1))  #True
+
+# ตัวอย่างที่ไม่เป็น Max Heap (เพราะ 5 < 7)
+arr2 = [5, 7, 6, 3, 2, 4, 1]
+print(arr2,' is ',is_max_heap(arr2))  #False
+
 ```
-[Capture รูปส่งตรงนี้]
+![image](https://github.com/user-attachments/assets/2f0821fa-7429-443c-b832-91a1250f52d7)
+
 
 
 ## การประยุกต์ใช้งานจริง
